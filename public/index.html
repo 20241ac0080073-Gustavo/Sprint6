@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agente IA — Check-up Cloud</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ================= TELA DE AUTENTICAÇÃO ================= -->
+  <div id="tela-auth" class="tela-auth">
+    <div class="cartao-auth">
+      <h1>Agente IA</h1>
+      <p class="subtitulo">Entre ou crie sua conta para começar a conversar.</p>
+
+      <div class="abas">
+        <button id="aba-login" class="aba ativa">Entrar</button>
+        <button id="aba-cadastro" class="aba">Cadastrar</button>
+      </div>
+
+      <!-- Formulário de Login -->
+      <form id="form-login" class="form-auth">
+        <input type="email" id="login-email" placeholder="E-mail" required />
+        <input type="password" id="login-senha" placeholder="Senha" required />
+        <button type="submit">Entrar</button>
+        <p class="erro" id="erro-login"></p>
+      </form>
+
+      <!-- Formulário de Cadastro -->
+      <form id="form-cadastro" class="form-auth escondido">
+        <input type="text" id="cadastro-nome" placeholder="Nome" required />
+        <input type="email" id="cadastro-email" placeholder="E-mail" required />
+        <input type="password" id="cadastro-senha" placeholder="Senha (mín. 6 caracteres)" required />
+        <button type="submit">Criar conta</button>
+        <p class="erro" id="erro-cadastro"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= TELA DE CHAT ================= -->
+  <div id="tela-chat" class="tela-chat escondido">
+    <header class="topo">
+      <div class="topo-esquerda">
+        <span class="logo">Agente IA</span>
+        <span id="status-indicador" class="status" title="Verificando...">
+          <span class="bolinha"></span>
+          <span id="status-texto">Verificando...</span>
+        </span>
+      </div>
+      <div class="topo-direita">
+        <button id="btn-modo-documento" class="btn-secundario">📄 Conversar com Documento</button>
+        <button id="btn-limpar" class="btn-secundario">Limpar histórico</button>
+        <button id="btn-logout" class="btn-secundario">Sair</button>
+      </div>
+    </header>
+
+    <!-- Barra do modo RAG (documento) -->
+    <div id="barra-documento" class="barra-documento escondido">
+      <span id="documento-status">Nenhum documento carregado.</span>
+      <label for="input-documento" class="btn-secundario" style="cursor:pointer;">Anexar PDF/TXT</label>
+      <input type="file" id="input-documento" accept=".pdf,.txt" hidden />
+      <button id="btn-remover-documento" class="btn-secundario escondido">Remover documento</button>
+    </div>
+
+    <main id="lista-mensagens" class="lista-mensagens"></main>
+
+    <form id="form-mensagem" class="form-mensagem">
+      <label for="input-imagem" id="label-imagem" class="btn-imagem" title="Anexar imagem">📎</label>
+      <input type="file" id="input-imagem" accept="image/*" hidden />
+      <span id="preview-imagem" class="preview-imagem escondido"></span>
+      <input type="text" id="input-mensagem" placeholder="Digite sua mensagem..." autocomplete="off" required />
+      <button type="submit">Enviar</button>
+    </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="index.js"></script>
+</body>
+</html>
