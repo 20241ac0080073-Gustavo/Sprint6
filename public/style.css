@@ -289,3 +289,53 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ---------------- SALA PÚBLICA (Sprint 7) ---------------- */
+.barra-sala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: rgba(74, 222, 128, 0.07);
+  border-bottom: 1px solid var(--borda);
+  font-size: 0.85rem;
+  color: var(--texto);
+}
+
+.sala-conexao { color: var(--texto-fraco); font-size: 0.75rem; }
+.sala-conexao.ok { color: var(--verde); }
+.sala-conexao.falha { color: var(--vermelho); }
+
+.msg-sala {
+  align-self: flex-start;
+  max-width: 70%;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--tinta-clara);
+  border: 1px solid var(--borda);
+  border-bottom-left-radius: 2px;
+  line-height: 1.4;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.msg-sala.minha {
+  align-self: flex-end;
+  background: var(--acento);
+  color: #1a1200;
+  border-color: transparent;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 2px;
+}
+
+.msg-sala.bot {
+  background: rgba(242, 161, 84, 0.08);
+  border-left: 4px solid var(--acento);
+}
+
+.msg-sala .autor { font-weight: 700; font-size: 0.8rem; margin-bottom: 2px; }
+.msg-sala .hora { font-weight: 400; opacity: 0.6; margin-left: 6px; font-size: 0.7rem; }
+.msg-sala .corpo { white-space: pre-wrap; }
+.msg-sala.bot .corpo { white-space: normal; }
+.msg-sala.bot .corpo :is(p, ul, ol) { margin: 0 0 6px; }
+.msg-sala.bot .corpo ul, .msg-sala.bot .corpo ol { padding-left: 20px; }

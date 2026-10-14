@@ -49,6 +49,7 @@
         </span>
       </div>
       <div class="topo-direita">
+        <button id="btn-modo-sala" class="btn-secundario">🌐 Sala Pública</button>
         <button id="btn-modo-documento" class="btn-secundario">📄 Conversar com Documento</button>
         <button id="btn-limpar" class="btn-secundario">Limpar histórico</button>
         <button id="btn-logout" class="btn-secundario">Sair</button>
@@ -72,8 +73,21 @@
       <input type="text" id="input-mensagem" placeholder="Digite sua mensagem..." autocomplete="off" required />
       <button type="submit">Enviar</button>
     </form>
+
+    <!-- ===== SALA PÚBLICA (Sprint 7 - WebSocket) ===== -->
+    <div id="barra-sala" class="barra-sala escondido">
+      <span id="sala-online">🟢 0 usuários online na sala</span>
+      <span id="sala-conexao" class="sala-conexao">Conectando...</span>
+    </div>
+    <main id="lista-sala" class="lista-mensagens escondido"></main>
+    <form id="form-sala" class="form-mensagem escondido">
+      <input type="text" id="input-sala" placeholder="Mensagem para a sala... (use @gemini para chamar a IA)" autocomplete="off" maxlength="500" required />
+      <button type="submit">Enviar</button>
+    </form>
   </div>
 
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
   <script src="index.js"></script>
 </body>

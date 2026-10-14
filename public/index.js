@@ -3,7 +3,7 @@
 // Troque pela URL do seu backend publicado no Render antes de fazer deploy.
 // Em desenvolvimento local, aponte para http://localhost:3000
 // ========================================================================
-const API_URL = "https://SEU-BACKEND.onrender.com";
+const API_URL = "https://sprint6-nyhw.onrender.com";
 
 // ------------------------------------------------------------------------
 // Elementos da tela
@@ -35,6 +35,19 @@ const inputDocumento = document.getElementById("input-documento");
 const documentoStatus = document.getElementById("documento-status");
 const btnRemoverDocumento = document.getElementById("btn-remover-documento");
 const labelImagem = document.getElementById("label-imagem");
+
+// Sprint 7 - Sala Pública
+const btnModoSala = document.getElementById("btn-modo-sala");
+const barraSala = document.getElementById("barra-sala");
+const salaOnline = document.getElementById("sala-online");
+const salaConexao = document.getElementById("sala-conexao");
+const listaSala = document.getElementById("lista-sala");
+const formSala = document.getElementById("form-sala");
+const inputSala = document.getElementById("input-sala");
+
+let socket = null;
+let meuId = null;
+let modoSalaAtivo = false;
 
 let imagemSelecionada = null;
 let arquivoDocumentoSelecionado = null; // novo PDF/TXT ainda não enviado
@@ -119,12 +132,16 @@ formLogin.addEventListener("submit", async (e) => {
 // ------------------------------------------------------------------------
 // Logout - remove o token e volta pra tela de autenticação
 // ------------------------------------------------------------------------
-btnLogout.addEventListener("click", () => {
+function sair() {
   localStorage.removeItem("token");
+  desconectarSocket();
+  definirModoSala(false);
   listaMensagens.innerHTML = "";
   telaChat.classList.add("escondido");
   telaAuth.classList.remove("escondido");
-});
+}
+
+btnLogout.addEventListener("click", sair);
 
 // ------------------------------------------------------------------------
 // Limpar histórico (memória)
@@ -355,6 +372,7 @@ function entrarNoChat(token) {
   telaAuth.classList.add("escondido");
   telaChat.classList.remove("escondido");
   carregarHistorico();
+  conectarSocket();
 }
 
 async function carregarHistorico() {
@@ -370,6 +388,127 @@ async function carregarHistorico() {
   } catch (err) {
     console.error("Erro ao carregar histórico:", err);
   }
+}
+
+// ========================================================================
+// SPRINT 7 - SALA PÚBLICA EM TEMPO REAL (Socket.io)
+// ========================================================================
+function conectarSocket() {
+  if (socket) return;
+
+  // "auth" como função: a cada (re)conexão lê o token atual do localStorage.
+  socket = io(API_URL, {
+    auth: (cb) => cb({ token: localStorage.getItem("token") }),
+  });
+
+  socket.on("connect", () => definirStatusConexao("Conectado", "ok"));
+  socket.on("disconnect", () => definirStatusConexao("Reconectando...", "falha"));
+
+  socket.on("connect_error", (err) => {
+    console.error("Conexão com a sala recusada:", err.message);
+    if (err.data && err.data.codigo === "AUTH") {
+      // Token ausente, inválido ou expirado: volta para o login.
+      sair();
+      erroLogin.textContent = "Sessão expirada. Entre novamente.";
+    } else {
+      definirStatusConexao("Sem conexão com a sala", "falha");
+    }
+  });
+
+  socket.on("sessao", (usuario) => { meuId = usuario.id; });
+
+  socket.on("historicoSala", (mensagens) => {
+    listaSala.innerHTML = "";
+    mensagens.forEach(adicionarMensagemSala);
+  });
+
+  socket.on("mensagemRecebida", adicionarMensagemSala);
+
+  socket.on("usuariosOnline", (n) => {
+    salaOnline.textContent = `🟢 ${n} ${n === 1 ? "usuário online" : "usuários online"} na sala`;
+  });
+}
+
+function desconectarSocket() {
+  if (socket) socket.disconnect();
+  socket = null;
+  meuId = null;
+  listaSala.innerHTML = "";
+}
+
+function definirStatusConexao(texto, classe) {
+  salaConexao.textContent = texto;
+  salaConexao.classList.remove("ok", "falha");
+  if (classe) salaConexao.classList.add(classe);
+}
+
+// Alterna entre o chat privado (Sprints 1-6) e a sala pública
+function definirModoSala(ativo) {
+  modoSalaAtivo = ativo;
+  btnModoSala.textContent = ativo ? "💬 Chat Privado" : "🌐 Sala Pública";
+  btnModoSala.classList.toggle("ativo", ativo);
+
+  // Sala pública
+  barraSala.classList.toggle("escondido", !ativo);
+  listaSala.classList.toggle("escondido", !ativo);
+  formSala.classList.toggle("escondido", !ativo);
+
+  // Chat privado
+  listaMensagens.classList.toggle("escondido", ativo);
+  formMensagem.classList.toggle("escondido", ativo);
+  barraDocumento.classList.toggle("escondido", ativo || !modoDocumentoAtivo);
+  btnModoDocumento.classList.toggle("escondido", ativo);
+  btnLimpar.classList.toggle("escondido", ativo);
+
+  if (ativo) {
+    listaSala.scrollTop = listaSala.scrollHeight;
+    inputSala.focus();
+  }
+}
+
+btnModoSala.addEventListener("click", () => definirModoSala(!modoSalaAtivo));
+
+formSala.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const texto = inputSala.value.trim();
+  if (!texto) return;
+
+  if (!socket || !socket.connected) {
+    definirStatusConexao("Sem conexão: mensagem não enviada", "falha");
+    return;
+  }
+
+  socket.emit("novaMensagem", { texto });
+  inputSala.value = "";
+});
+
+// Mensagens de humanos entram como texto puro (textContent). A resposta do
+// bot é Markdown e passa pelo DOMPurify: numa sala pública, alguém poderia
+// induzir a IA a devolver HTML malicioso que rodaria no navegador de todos.
+function adicionarMensagemSala({ autorId, autor, texto, hora, bot }) {
+  const div = document.createElement("div");
+  div.className = "msg-sala" + (bot ? " bot" : "") + (!bot && autorId === meuId ? " minha" : "");
+
+  const cabecalho = document.createElement("div");
+  cabecalho.className = "autor";
+  cabecalho.textContent = autor;
+
+  const horaEl = document.createElement("span");
+  horaEl.className = "hora";
+  horaEl.textContent = new Date(hora).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  cabecalho.appendChild(horaEl);
+
+  const corpo = document.createElement("div");
+  corpo.className = "corpo";
+  if (bot && window.marked && window.DOMPurify) {
+    corpo.innerHTML = DOMPurify.sanitize(marked.parse(texto));
+  } else {
+    corpo.textContent = texto;
+  }
+
+  div.append(cabecalho, corpo);
+  listaSala.appendChild(div);
+  listaSala.scrollTop = listaSala.scrollHeight;
 }
 
 // ========================================================================

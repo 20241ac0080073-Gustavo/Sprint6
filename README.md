@@ -80,3 +80,12 @@ Um monitor HTTP(s) foi configurado no [UptimeRobot](https://uptimerobot.com) apo
 ## Relatório de Auditoria
 
 O relatório de QA desta Sprint (matriz de testes, bugs encontrados/corrigidos e evidências) está disponível em `relatorio-auditoria.docx` (ou no link do Google Docs informado na entrega).
+## Sprint 7 — Sala Pública em Tempo Real (WebSocket)
+
+- **Tecnologia:** Socket.io (servidor no mesmo processo do Express; o front usa o cliente via CDN).
+- **Sala pública:** botão "🌐 Sala Pública" no topo do chat. Toda mensagem enviada (`novaMensagem`) é retransmitida a todos (`mensagemRecebida`) sem F5.
+- **Agente moderador:** `🤖 Moderador Gemini` só responde quando a mensagem contém `@gemini` ou `@bot`; conversa entre humanos não aciona a IA. Há um intervalo de 5 s por usuário entre chamadas à IA.
+- **Segurança:** o handshake do socket exige JWT válido (o mesmo das rotas REST). Sem token válido a conexão é recusada. O nome exibido vem do banco, nunca do cliente.
+- **Desafio Hacker:** contador de usuários online (`usuariosOnline`), exibido no topo da sala.
+- **Variável opcional:** `GEMINI_MODEL` troca o modelo usado pelo bot (padrão: o mesmo das demais rotas).
+- O histórico da sala é mantido apenas em memória (últimas 30 mensagens) e é zerado quando o servidor reinicia.
