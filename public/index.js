@@ -367,8 +367,19 @@ function renderizarConteudoModelo(elemento, texto) {
 // ------------------------------------------------------------------------
 // Ao entrar (login/cadastro OK): guarda token, mostra chat, carrega histórico
 // ------------------------------------------------------------------------
+function mostrarLinkDashboard(token) {
+  // Só esconde/mostra o botão. Quem protege o Dashboard de verdade é o back-end (403).
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    document.getElementById("link-dashboard").classList.toggle("escondido", payload.role !== "admin");
+  } catch (e) {
+    document.getElementById("link-dashboard").classList.add("escondido");
+  }
+}
+
 function entrarNoChat(token) {
   localStorage.setItem("token", token);
+  mostrarLinkDashboard(token);
   telaAuth.classList.add("escondido");
   telaChat.classList.remove("escondido");
   carregarHistorico();

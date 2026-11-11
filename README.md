@@ -89,3 +89,14 @@ O relatório de QA desta Sprint (matriz de testes, bugs encontrados/corrigidos e
 - **Desafio Hacker:** contador de usuários online (`usuariosOnline`), exibido no topo da sala.
 - **Variável opcional:** `GEMINI_MODEL` troca o modelo usado pelo bot (padrão: o mesmo das demais rotas).
 - O histórico da sala é mantido apenas em memória (últimas 30 mensagens) e é zerado quando o servidor reinicia.
+
+## Sprint 8 — Centro de Comando (Dashboard Analytics e Controle de Custos)
+
+- **Estrutura do back-end:** `server.js` (entrada + WebSocket), `models/` (`Usuario`, `Mensagem`, `DocumentoRAG`), `middlewares/` (`autenticarToken`, `apenasAdmin`), `controllers/` (`authController`, `chatController`), `routes/` (`authRoutes`, `chatRoutes`, `analyticsRoutes`), `config/gemini.js`.
+- **RBAC:** `Usuario.role` (`String`, padrão `"user"`). O role vai dentro do JWT e o middleware `apenasAdmin` devolve **403** para quem não for `admin`. Para virar admin, altere o campo `role` do seu usuário direto no MongoDB Atlas e **faça login de novo** (o role é lido do token). O cadastro público sempre cria `"user"`.
+- **Telemetria de tokens:** cada resposta do Gemini (chat, documento e bot da sala pública) salva `usageMetadata.totalTokenCount` em `Mensagem.tokensGastos`. No chat com function calling, as duas chamadas ao modelo são somadas.
+- **Analytics:** `GET /api/analytics/tokens` (protegida por `autenticarToken` + `apenasAdmin`) usa `Mensagem.aggregate()` com `$group` e `$sum` e devolve `totalTokens`, `totalMensagens`, `totalUsuarios` e a série diária (`porDia`).
+- **Dashboard:** `public/dashboard.html` + `public/dashboard.js` (Chart.js via CDN, canvas `#graficoTokens`). O botão "📊 Dashboard" só aparece no chat para admins.
+- **Desafio Hacker (tempo real):** a cada gasto de tokens o servidor emite `novoGastoDeToken` e o gráfico sobe sozinho. O evento vai só para a sala `admins` do Socket.io, para usuários comuns não receberem dados de custo.
+- **Variável opcional:** `GEMINI_MODEL` agora vale para todas as rotas e para o bot da sala.
+- **Coleções existentes:** os models usam as coleções antigas (`users` e `messages`), então nenhum dado das sprints anteriores se perde.
